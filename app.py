@@ -3,8 +3,10 @@ import joblib
 import traceback
 import pandas as pd
 import numpy as np
+from flask_cors import CORS
 
 app= Flask(__name__)
+CORS(app)
 rfc=joblib.load("model.pkl")
 print("Model Loaded")
 rfc_columns=joblib.load("model_columns.pkl")
@@ -15,16 +17,21 @@ def crop_predict():
     if rfc:
         try:
             json_ = request.get_json(force=True)
-            features = [[entry['Nitrogen'], entry['Phosporous'], entry['Potassium'], 
-                   entry['temperature'], entry['humidity'], entry['ph'], entry['rainfall']] for entry in json_]
+            features = [[float(entry['nitrogen']), float(entry['phosporous']), float(entry['potassium']), 
+                   float(entry['temperature']), float(entry['humidity']),float(entry['ph']), float(entry['rainfall'])] for entry in json_]
             prediction = list(rfc.predict(features))
             prediction=list(prediction[0])
-            true_index=prediction.index(True)
-            if true_index==-1:
-                return ("Nothing will grow in this condition")
-            else:
-                predicted_value=rfc_columns[true_index].lstrip("label_")
-                return jsonify({'prediction': predicted_value})
+            try:
+                value=prediction.index(True)
+            except ValueError:
+                value=-1
+            if value!=-1:
+                predicted_crop=list(rfc_columns)[value]
+                output_string=""
+                str_list = predicted_crop.split("label_")
+                for element in str_list:
+                    output_string += element
+                return jsonify({'prediction': output_string})
 
         except:
             return jsonify({'trace': traceback.format_exc()})

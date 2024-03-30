@@ -26,26 +26,36 @@ def training_prod_data(input_values):
     SEED=42
     X_train, X_test, y_train, y_test = train_test_split(x, y, 
                                                     test_size=0.2, 
-                                                    random_state=SEED)
-    rfc = RandomForestClassifier(n_estimators=900, 
-                             max_depth=7,
-                             random_state=SEED)
+                                                    random_state=2)
+    rfc = RandomForestClassifier(n_estimators=20, 
+                             random_state=0)
     rfc.fit(X_train.values, y_train)
     prediction=rfc.predict(input_values)
     value=list(prediction[0])
-    value=value.index(True)
-    predicted_crop=list(crop_data_ohe)[value].lstrip("label_")
-    joblib.dump(rfc,'model.pkl')
-    print("Model Dumped")
-    rfc=joblib.load("model.pkl")
-    model_columns=list(y.columns)
-    joblib.dump(model_columns,"model_columns.pkl")
-    print("Model Columns dumped")
-    print(list(crop_data_ohe))
+    try:
+        value=value.index(True)
+    except ValueError:
+        value=-1
+    if value!=-1:
+        predicted_crop=list(y)[value]
+        output_string=""
+        str_list = predicted_crop.split("label_")
+        for element in str_list:
+            output_string += element
+        joblib.dump(rfc,'model.pkl')
+        print("Model Dumped")
+        rfc=joblib.load("model.pkl")
+        model_columns=list(y.columns)
+        joblib.dump(model_columns,"model_columns.pkl")
+        print("Model Columns dumped")
+        print(output_string)
+    else:
+        print("No crops will grow")
+    
     
 
 if __name__=="__main__":
-    training_prod_data([[101,17,45,30.6,65.5,7,30.0]])
+    training_prod_data([[94,70,48,25.1,84.8,6.2,91.4]])
 
 
 
