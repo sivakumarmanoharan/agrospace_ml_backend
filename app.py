@@ -4,6 +4,7 @@ import traceback
 import pandas as pd
 import numpy as np
 from flask_cors import CORS
+import json
 
 app= Flask(__name__)
 CORS(app)
@@ -17,7 +18,7 @@ def crop_predict():
     if rfc:
         try:
             json_ = request.get_json(force=True)
-            features = [[float(entry['nitrogen']), float(entry['phosporous']), float(entry['potassium']), 
+            features = [[float(entry['nitrogen']), float(entry['phosphorous']), float(entry['potassium']), 
                    float(entry['temperature']), float(entry['humidity']),float(entry['ph']), float(entry['rainfall'])] for entry in json_]
             prediction = list(rfc.predict(features))
             prediction=list(prediction[0])
@@ -32,6 +33,9 @@ def crop_predict():
                 for element in str_list:
                     output_string += element
                 return jsonify({'prediction': output_string})
+            else:
+                output_string="NO_CROP"
+                return jsonify({'prediction':output_string})
 
         except:
             return jsonify({'trace': traceback.format_exc()})
